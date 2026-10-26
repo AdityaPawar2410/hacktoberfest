@@ -2,7 +2,7 @@
 
 *Roshni* means "light". Roshni is an offline camera assistant that tells blind and low-vision users what is around them, out loud, and is controlled with hand gestures. Every model is open source and runs locally on the laptop, so nothing leaves the device.
 
-Built by [team member names] at [hackathon name], 26 October 2026.
+Built by Aditya Pawar, Vivek Pawar, Aditya Shinde, Rohit Gore at Hacktoberfest, 26 October 2026.
 
 ## Features
 
