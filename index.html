@@ -1,0 +1,77 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Roshni</title>
+<style>
+:root{--bg:#f2f5fa;--ink:#0f1b33;--muted:#4a5878;--panel:#fff;--lamp:#ffc21a;--red:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:1.125rem/1.45 "Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif}
+main{max-width:76rem;margin:0 auto;padding:1.25rem}
+h1{margin:0;font-size:2.4rem;line-height:1.1}
+.tag{margin:.2rem 0 1.25rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:1.25rem}
+@media(max-width:60rem){.grid{grid-template-columns:1fr}}
+.video{position:relative;border:3px solid var(--ink);background:var(--ink);aspect-ratio:4/3}
+.video img{width:100%;height:100%;object-fit:contain;display:block}
+#loading{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:1rem;background:var(--ink);color:#fff;font-size:1.3rem}
+.chip{display:block;width:100%;padding:1rem;border:3px solid var(--ink);font:700 1.7rem/1.1 inherit;text-align:center;background:var(--lamp);color:var(--ink)}
+.chip.quiet{background:var(--ink);color:#fff}
+button{display:block;width:100%;margin-top:.75rem;padding:.9rem 1rem;border:3px solid var(--ink);background:var(--panel);color:var(--ink);font:700 1.2rem/1.2 inherit;text-align:left;cursor:pointer}
+button small{display:block;font-weight:400;color:var(--muted)}
+button:hover{background:#e4eaf5}
+button.exit{border-color:var(--red);color:var(--red)}
+:focus-visible{outline:4px solid #1d4ed8;outline-offset:3px}
+.box{margin-top:.75rem;padding:.8rem 1rem;border:3px solid var(--ink);background:var(--panel);min-height:3.2rem}
+.box b{display:block;font-size:.95rem;color:var(--muted)}
+.bar{height:10px;background:#d5dcea;margin-top:.4rem}.bar i{display:block;height:100%;width:0;background:var(--ink)}
+ul{list-style:none;margin:0;padding:0;font-size:1rem}li{padding:.2rem 0;border-bottom:1px solid #d5dcea}li span{color:var(--muted);margin-right:.6rem}
+footer{margin-top:1.25rem;color:var(--muted);font-size:1rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Project Roshni</h1>
+<p class="tag">A camera assistant that tells blind users what is around them. Every model runs on this laptop and is open source.</p>
+<div class="grid">
+  <section>
+    <div class="video"><img src="/video" alt="Live camera with detected objects outlined"><div id="loading">Loading the models. This takes about 30 seconds.</div></div>
+    <div class="box"><b>Recent events</b><ul id="log" aria-live="polite"></ul></div>
+  </section>
+  <section>
+    <div id="mode" class="chip" aria-live="polite">Sound mode</div>
+    <button id="bd">Describe the scene<small>Hand gesture: thumbs up, held for a second</small></button>
+    <button id="bq">Switch mode<small>Hand gesture: open palm, held for a second</small></button>
+    <button id="br">Repeat last description</button>
+    <div class="box" aria-live="polite"><b>Last alert</b><span id="alert">Nothing yet</span></div>
+    <div class="box" aria-live="polite"><b>Last description</b><span id="desc">Nothing yet</span></div>
+    <div class="box"><b>Hand: <span id="hand">none</span></b><div class="bar"><i id="prog"></i></div></div>
+    <button class="exit" id="be">Exit</button>
+  </section>
+</div>
+<footer>YOLO26 finds objects. Qwen3-VL describes scenes. MediaPipe reads hand gestures. Piper speaks. Nothing leaves this laptop.</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const post=n=>fetch("/api/"+n,{method:"POST"}).catch(()=>{});
+$("bd").onclick=()=>post("describe");$("bq").onclick=()=>post("toggle_quiet");$("br").onclick=()=>post("repeat");
+$("be").onclick=()=>{if(confirm("Stop Project Roshni?")){post("exit");document.body.innerHTML="<main><h1>Stopped</h1><p>You can close this tab.</p></main>"}};
+async function tick(){
+  try{
+    const s=await (await fetch("/api/state")).json();
+    $("loading").style.display=s.ready&&!s.error?"none":"grid";
+    $("loading").textContent=s.error?s.error:"Loading the models. This takes about 30 seconds.";
+    $("mode").textContent=s.describing?"Describing the scene":s.quiet?"Quiet mode":"Sound mode";
+    $("mode").className="chip"+(s.quiet?" quiet":"");
+    $("bq").firstChild.textContent=s.quiet?"Switch to sound mode":"Switch to quiet mode";
+    $("alert").textContent=s.alert||"Nothing yet";$("desc").textContent=s.description||"Nothing yet";
+    $("hand").textContent=s.hand||"none";$("prog").style.width=(s.hand?Math.round(s.progress*100):0)+"%";
+    $("log").innerHTML=s.events.slice().reverse().map(e=>"<li><span>"+e.t+"</span>"+e.text.replace(/</g,"&lt;")+"</li>").join("");
+  }catch(e){}
+  setTimeout(tick,300);
+}
+tick();
+</script>
+</body>
+</html>

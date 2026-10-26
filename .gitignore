@@ -1,0 +1,16 @@
+@'
+venv/
+__pycache__/
+*.pyc
+*.pt
+*.onnx
+*.onnx.json
+*.task
+*.bak
+*.mp4
+old_stages/
+stage5_gestures.py
+requirements_working.txt
+requirements_final.txt
+.env
+'@ | Set-Content .gitignore
